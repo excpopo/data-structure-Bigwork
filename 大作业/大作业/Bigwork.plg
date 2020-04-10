@@ -1,0 +1,41 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: Bigwork - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\木星\AppData\Local\Temp\RSPDD36.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/Bigwork.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\visual studio works\大作业\大作业\Bigwork.c"
+]
+Creating command line "cl.exe @"C:\Users\木星\AppData\Local\Temp\RSPDD36.tmp"" 
+<h3>Output Window</h3>
+Compiling...
+Bigwork.c
+E:\visual studio works\大作业\大作业\Bigwork.c(69) : error C2275: 'deliverman_pointer' : illegal use of this type as an expression
+        E:\visual studio works\大作业\大作业\Bigwork.c(36) : see declaration of 'deliverman_pointer'
+E:\visual studio works\大作业\大作业\Bigwork.c(69) : error C2146: syntax error : missing ';' before identifier 'D2'
+E:\visual studio works\大作业\大作业\Bigwork.c(69) : error C2065: 'D2' : undeclared identifier
+E:\visual studio works\大作业\大作业\Bigwork.c(69) : warning C4047: '=' : 'int ' differs in levels of indirection from 'struct deliverman_node *'
+E:\visual studio works\大作业\大作业\Bigwork.c(70) : error C2223: left of '->Dname' must point to struct/union
+E:\visual studio works\大作业\大作业\Bigwork.c(70) : error C2198: 'strcpy' : too few actual parameters
+E:\visual studio works\大作业\大作业\Bigwork.c(71) : error C2223: left of '->Dcode' must point to struct/union
+E:\visual studio works\大作业\大作业\Bigwork.c(71) : error C2198: 'strcpy' : too few actual parameters
+E:\visual studio works\大作业\大作业\Bigwork.c(72) : error C2223: left of '->Dphonenum' must point to struct/union
+E:\visual studio works\大作业\大作业\Bigwork.c(72) : error C2198: 'strcpy' : too few actual parameters
+E:\visual studio works\大作业\大作业\Bigwork.c(73) : error C2223: left of '->psw' must point to struct/union
+E:\visual studio works\大作业\大作业\Bigwork.c(73) : error C2198: 'strcpy' : too few actual parameters
+E:\visual studio works\大作业\大作业\Bigwork.c(76) : warning C4047: 'function' : 'struct deliverman_node *' differs in levels of indirection from 'int '
+E:\visual studio works\大作业\大作业\Bigwork.c(76) : warning C4024: 'insert_deliverman_list' : different types for formal and actual parameter 2
+执行 cl.exe 时出错.
+
+
+
+<h3>Results</h3>
+Bigwork.obj - 1 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
