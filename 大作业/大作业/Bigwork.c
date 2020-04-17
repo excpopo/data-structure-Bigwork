@@ -23,7 +23,8 @@ typedef struct locker_node* locker_pointer; //÷∏œÚπÒø⁄Ω⁄µ„µƒ÷∏’Î
 
 //πÒø⁄
 
-struct locker_node {					//∂®“ÂπÒø⁄Ω⁄µ„
+struct locker_node
+{					//∂®“ÂπÒø⁄Ω⁄µ„
 	int num;							//πÒø⁄∫≈¬Î(Õ∑Ω·µ„¥Ê∑≈◊‹Ω·µ„ ˝)
 	int state;							//πÒ◊”◊¥Ã¨(0/1)(Õ∑Ω·µ„¥Ê∑≈“— π”√ ˝)
 	locker_pointer prior,next,head;				//next,prior”Ú
@@ -96,21 +97,23 @@ code_pointer locate_code_list(code_list list, char code[7]);
 Status de_locker_list(locker_list head, locker_pointer node);
 Status de_code_list(code_list list, code_pointer f);
 Status put_stuff(code_list cL, deliverman_pointer dP, locker_list lL, phonenum_list pL, struct stuffs stuff,int size);
-Status get_stuff(code_list cL, phonenum_list pL, char code[7]);
+Status get_stuff(code_list cL, phonenum_list pL, char code[7], int mode);
 Status sign_up(deliverman_list list);
-Status sign_in(deliverman_list list,deliverman_pointer p);
+Status sign_in(deliverman_list list,deliverman_pointer *p);
 void see(code_list cL, deliverman_list dL, locker_list lL, phonenum_list pL);
+void print_Dhistory(deliverman_pointer dp);
+code_pointer locate_record_list(deliverman_pointer dp, char num[6]);
 int main()
 {
 	/*œ»‘§∂®“Â¡Ω∏ˆøÏµ›‘±≤¢ÃÌº”µΩƒ⁄¥Ê*/
-	
+
 	deliverman_list DL = init_deliverman_list();//≥ı ºªØøÏµ›¡¥±Ì
-	locker_list lockers_L= init_locker_list(1,5);//∏˜∏ˆ¬Î ˝≤ªÕ¨µƒøÏµ›πÒÀ´¡¥
-	locker_list lockers_M= init_locker_list(6,14);
-	locker_list lockers_S= init_locker_list(15,24);
+	locker_list lockers_L = init_locker_list(1, 5);//∏˜∏ˆ¬Î ˝≤ªÕ¨µƒøÏµ›πÒÀ´¡¥
+	locker_list lockers_M = init_locker_list(6, 14);
+	locker_list lockers_S = init_locker_list(15, 24);
 	code_list cL = init_code_list();
 	phonenum_list pL = init_phonenum_list();
-	
+
 	deliverman_pointer D1 = (deliverman_pointer)malloc(sizeof(struct deliverman_node));
 	deliverman_pointer D2 = (deliverman_pointer)malloc(sizeof(struct deliverman_node));
 	struct stuffs stuff1;
@@ -154,15 +157,16 @@ int main()
 		{
 			printf("1.»°øÏµ›\n");
 			printf("2.∑µªÿ…œ“ª≤„\n");
-			scanf("%d",&i);
+			scanf("%d", &i);
 			getchar();
-			if (i == 1) 
+			if (i == 1)
 			{
-				printf("«Î ‰»Î»°º˛¬Î:");
-				scanf("%s", code);
-				getchar();
-				get_stuff(cL, pL,code);
-			    continue;//»°º˛ÕÍ≥…∑µªÿ…œ“ª≤„
+				do {
+					printf("«Î ‰»Î»°º˛¬Î:");
+					scanf("%s", code);
+					getchar();
+				} while (get_stuff(cL, pL, code, 0) == TRUE);//0¥˙±ÌŒ™øÕªßƒ£ Ω,∑µªÿtureºÃ–¯»°º˛
+				continue;//»°º˛ÕÍ≥…∑µªÿ…œ“ª≤„
 			}
 		}
 		else if (i == 2)//π‹¿Ì‘±Ω”ø⁄
@@ -175,20 +179,18 @@ int main()
 				scanf("%d", &i);
 				if (i == 1)
 				{
-					struct deliverman_node d;
-					deliverman_pointer dP = &d;
-					if (sign_in(DL,dP) == TRUE)//µ«¬º≥…π¶
+					deliverman_pointer dP;//À´÷ÿ÷∏’Î
+					if (sign_in(DL, &dP) == TRUE)//µ«¬º≥…π¶
 					{
 						printf("µ«¬º≥…π¶\n");
-						while (1) 
+						while (1)
 						{
 							/*øÏµ›‘±ΩÁ√Ê*/
 							printf("1.Õ∂µ›øÏµ›\n");
-							printf("2.»°≥ˆøÏµ›\n");
-							printf("3.≤È—ØøÏµ›πÒ◊¥Ã¨\n");
-							printf("4.≤È—Ø“—Õ∂µ›øÏµ›◊¥Ã¨\n");
-							printf("5.≤‚ ‘¥∞ø⁄\n");
-							printf("6.∑µªÿ÷˜“≥\n");
+							printf("2.≤È—ØøÏµ›πÒ◊¥Ã¨\n");
+							printf("3.≤È—ØøÏµ›◊¥Ã¨(»°≥ˆ)\n");
+							printf("4.≤‚ ‘¥∞ø⁄\n");
+							printf("5.∑µªÿ÷˜“≥\n");
 							scanf("%d", &i);
 							if (i == 1)
 							{
@@ -196,58 +198,89 @@ int main()
 								stuff.iftimeout = -1;
 								printf("∂¡»°øÏµ›–≈œ¢\n");
 								printf(" ‰»ÎøÏµ›µ•∫≈\n");
-								scanf("%s",stuff.num);
+								scanf("%s", stuff.num);
 								printf(" ‰»ÎøÏµ›∫≈¬Î\n");
 								scanf("%s", stuff.phonenum);
 								printf("«Î—°‘Ò∏Òø⁄¥Û–°(S/M/L)\n");
 								getchar();
 								scanf("%c", &c);
-								printf("¥À ±ŒÔ∆∑Œ™:%s,%s\n",stuff.num,stuff.phonenum);
+								printf("¥À ±ŒÔ∆∑Œ™:%s,%s\n", stuff.num, stuff.phonenum);
 								switch (c)
 								{
-								case 'S':put_stuff(cL, dP, lockers_S, pL, stuff,1); break;//◊Ó∫Û“ª∏ˆŒ™¥Û–°
-								case 'M':put_stuff(cL, dP, lockers_M, pL, stuff,2); break;
-								case 'L':put_stuff(cL, dP, lockers_L, pL, stuff,3); break;
+								case 'S':put_stuff(cL, dP, lockers_S, pL, stuff, 1); break;//◊Ó∫Û“ª∏ˆŒ™¥Û–°
+								case 'M':put_stuff(cL, dP, lockers_M, pL, stuff, 2); break;
+								case 'L':put_stuff(cL, dP, lockers_L, pL, stuff, 3); break;
 								default:
 									printf(" ‰»Î¥ÌŒÛ,∞¥»Œ“‚º¸∑µªÿ…œ“ª≤„\n");
 									continue;
 								}
 								printf("Õ∂µ›≥…π¶!\n");
 								printf("************ ’º˛œ‰*************\n");
-								printf("ƒ˙µƒøÏµ›µ•∫≈:%s “—µΩ∏Òø⁄øÏµ›πÒ\n¬È∑≥π˝¿¥»°“ªœ¬,»°º˛¬Î:%s–ª–ª,\n",cL->prior->stuff.num,cL->prior->code);
+								printf("ƒ˙µƒøÏµ›µ•∫≈:%s “—µΩ∏Òø⁄øÏµ›πÒ\n¬È∑≥π˝¿¥»°“ªœ¬,»°º˛¬Î:%s–ª–ª,\n", stuff.num, code);
 								printf("øÏµ›‘± ÷ª˙%s\n", dP->Dphonenum);
 								printf("*************end**************\n");
 							}
 							else if (i == 2)
 							{
-								printf("2…–‘⁄ÕÍ…∆÷–\n");
+
+								printf("µ±«∞øÏµ›πÒ◊¥Ã¨\n");
+								printf("µ±«∞¥Û∫≈πÒ“—”√%d/%d\n", lockers_L->state, lockers_L->num);
+								printf("µ±«∞÷–∫≈πÒ“—”√%d/%d\n", lockers_M->state, lockers_M->num);
+								printf("µ±«∞–°∫≈πÒ“—”√%d/%d\n", lockers_S->state, lockers_S->num);
 								printf("∞¥»Œ“‚º¸∑µªÿ…œ“ª≤„\n");
 								getchar();
 								continue;
 							}
 							else if (i == 3)
 							{
-
-								printf("µ±«∞øÏµ›πÒ◊¥Ã¨\n");
-								printf("µ±«∞¥Û∫≈πÒ“—”√%d/%d\n",lockers_L->state,lockers_L->num);
-								printf("µ±«∞÷–∫≈πÒ“—”√%d/%d\n",lockers_M->state, lockers_M->num);
-								printf("µ±«∞–°∫≈πÒ“—”√%d/%d\n",lockers_S->state, lockers_S->num);
+								char num[6];
+								code_pointer cP;
+								int s;
+								print_Dhistory(dP);
+								printf(" «∑Ò»°≥ˆøÏµ›(y/n),n∑µªÿ…œ“ª≤„\n");
+								getchar();
+								scanf("%c", &c);
+								getchar();
+								if (c == 'y')
+								{
+									while (1)
+									{
+										printf("«Î ‰»Î»°≥ˆŒÔ∆∑µƒµ•∫≈\n");
+										scanf("%s", num);
+										getchar();
+										cP = locate_record_list(dP, num);
+										if (cP == NULL)// ‰»Î¥ÌŒÛ,ªÚŒÔ∆∑“—±ª»°≥ˆ
+										{
+											printf(" ‰»Î¥ÌŒÛ,ªÚ∏√ŒÔ∆∑“—±ª»°≥ˆ,÷ÿ–¬ ‰»Î\n");
+											continue;
+										}
+										else
+										{
+											s = get_stuff(cL, pL, cP->code, 1);
+											printf("************ ’º˛œ‰*************\n");
+											printf("ƒ˙µƒøÏµ›µ•∫≈:%s“—±ª \n", num);
+											printf("øÏµ›‘±:%s»°≥ˆ\n", dP->Dphonenum);
+											printf("*************end**************\n");
+											if (s == TRUE)
+												continue;
+											else
+												break;
+										}
+									}
+									continue;
+								}
+								else if (c == 'n')
+									continue;
 								printf("∞¥»Œ“‚º¸∑µªÿ…œ“ª≤„\n");
+								getchar();
 								getchar();
 								continue;
 							}
 							else if (i == 4)
 							{
-								printf("4…–‘⁄ÕÍ…∆÷–\n");
-								printf("∞¥»Œ“‚º¸∑µªÿ…œ“ª≤„\n");
-								getchar();
-								continue;
+								see(cL, DL, lockers_S, pL);
 							}
 							else if (i == 5)
-							{
-								see(cL,DL,lockers_S,pL);
-							}
-							else if (i == 6)
 							{
 								break;
 							}
@@ -257,7 +290,7 @@ int main()
 								getchar();
 								continue;
 							}
-						}						
+						}
 					}
 					else// ‰»Î√‹¬Î¥ÌŒÛ/’Àªß≤ª¥Ê‘⁄
 					{
@@ -269,7 +302,7 @@ int main()
 				}
 				else if (i == 2)
 				{
-					if (sign_up(DL)==TRUE)
+					if (sign_up(DL) == TRUE)
 					{
 						printf("◊¢≤·≥…π¶!∑µªÿ…œ“ª≤„÷ÿ–¬µ«¬º\n");
 						continue;
@@ -297,19 +330,21 @@ int main()
 			printf(" ‰»Î¥ÌŒÛ£°£°  ‰»Î»Œ“‚º¸÷ÿ–¬ ‰»Î\n");
 			continue;
 		}
+
+		
 	}
 	return 0;
 }
 //************************************************************************≥Ã–Ú ˝æ›≤Èø¥
 void see(code_list cL, deliverman_list dL, locker_list lL, phonenum_list pL)
-{
+ {
 	code_pointer cP = cL;
 	deliverman_pointer dP = dL;
 	locker_pointer lP = lL;
 	phonenum_pointer pP = pL;
 	printf("µ±«∞øÏµ›‘±¡¥±Ì◊¥Ã¨:");
 	while (dP->next != NULL) {
-		printf("%s->",dP->next->Dcode);
+		printf("%s->",dP->next->Dphonenum);
 		dP = dP->next;
 	}
 	printf("\n");
@@ -498,6 +533,17 @@ code_pointer locate_code_addr_list(phonenum_pointer node, char code[7]) {//◊”¡¥À
 	node->sublist_prior = p;//∂‘”¶Ω⁄µ„µƒ«∞«˝Ω⁄µ„,”√”⁄…æ≥˝
 	return p->next->code_P;//∑µªÿ∂‘”¶Ω⁄µ„
 }
+code_pointer locate_record_list(deliverman_pointer dp,  char num[6])//Õ®π˝≤È’“µ•∫≈»°≥ˆªÚ÷ÿÕ∂
+{
+	record_pointer rp = dp->sublist;
+	while (rp != NULL)
+	{
+		if (strcmp(rp->stuff.num, num) == 0)//’“≥ˆº«¬º
+			return rp->code_p;
+		rp = rp->next;
+	}
+	return NULL;//√ª”–¥Àµ•∫≈,∑µªÿ÷ÿ–¬ ‰»Î
+}
 
 /********************************************************¡¥±Ìµƒ»°≥ˆ*************/
 Status de_locker_list(locker_list head, locker_pointer node) {//πÒø⁄»°≥ˆŒÔ∆∑∫Û∏Òø⁄∫Û“∆µ±ΩÒ÷∏∂®Œª÷√,≤ª◊ˆœ˙ªŸ¥¶¿Ì
@@ -525,6 +571,7 @@ Status de_code_list(code_list head, code_pointer p)//»°≥ˆ»°º˛¬Î,pŒ™»°≥ˆΩ⁄µ„µÿ÷∑
 	}
 	else if (p->next == NULL)
 	{
+		p->prior->next = NULL;
 		head->prior = p->prior;//µ±…æ≥˝Ω⁄µ„Œ™Œ≤Ω·µ„,Ω´Œ≤Ω·µ„÷∏’Î÷∏œÚÕ∑Ω·µ„
 	}
 	else
@@ -587,22 +634,25 @@ void create_code(code_list head, char *Scode,int size)//∑µªÿÀÊª˙µƒŒﬁ÷ÿ∏¥6Œª»°º˛¬
 			break;
 	}
 }
-Status sign_in(deliverman_list list,deliverman_pointer p) {//µ«¬º
+Status sign_in(deliverman_list list,deliverman_pointer *p) {//µ«¬º
 	char Dcode[7], psw[7];
+	deliverman_pointer p1;
 	printf("’Àªß(π§∫≈):");
 	scanf("%s", Dcode);
 	printf("√‹¬Î:");
 	scanf("%s", psw);
-	p = locate_deliverman_list(list, Dcode);//≤È’“¡¥±Ì÷–øÏµ›‘±Ω⁄µ„,∑µªÿ«∞«˝Ω⁄µ„
-	p = p->next;
-	if (p == NULL)
+	p1 = locate_deliverman_list(list, Dcode);//≤È’“¡¥±Ì÷–øÏµ›‘±Ω⁄µ„,∑µªÿ«∞«˝Ω⁄µ„
+	if (p1->next == NULL)
 		return FALSE;//’Àªß≤ª¥Ê‘⁄
-	printf("%s",p->Dcode);
-	if (strcmp(p->psw, psw) == 0)//µ«¬º≥…π¶
+	printf("%s",p1->next->Dcode);
+	if (strcmp(p1->next->psw, psw) == 0)//µ«¬º≥…π¶
+	{
+		p1 = p1->next;
+		*p = p1;
 		return TRUE;
+	}
 	else
-		return FALSE;//√‹¬Î¥ÌŒÛ
-
+		return FALSE;//
 }
 Status sign_up(deliverman_list list) {//◊¢≤·
 	char  psw2[7];
@@ -625,8 +675,19 @@ Status sign_up(deliverman_list list) {//◊¢≤·
 	else
 		return FALSE;
 }
+void print_Dhistory(deliverman_pointer dp) {
+	record_pointer p = dp->sublist;
+	int i;
+	printf("◊¥Ã¨(-1»°≥ˆ,0‘⁄πÒ,1≥¨ ±)\n");
+	printf("–Ú∫≈    ŒÔ∆∑µ•∫≈   ◊¥Ã¨\n");
+	for (i = 1; p != NULL; i++)
+	{
+		printf("%-2d      %-6s      %-2d\n",i,p->stuff.num,p->stuff.iftimeout);
+		p = p->next;
+	}
+}
 /******************************************************************************************∏¥∫œ≤Ÿ◊˜(¥Ê»°)*/
-Status get_stuff(code_list cL,phonenum_list pL,	char code[7]) {//»°º˛pLŒ™“‘µÁª∞∑÷¿‡µƒÀ˜“˝±Ì
+Status get_stuff(code_list cL,phonenum_list pL,	char code[7],int mode) {//»°º˛pLŒ™“‘µÁª∞∑÷¿‡µƒÀ˜“˝±Ì
 	code_pointer cP;
 	char i;
 	while (1) {
@@ -636,26 +697,22 @@ Status get_stuff(code_list cL,phonenum_list pL,	char code[7]) {//»°º˛pLŒ™“‘µÁª∞∑
 			i = getchar();
 			getchar();
 			if (i == 'y') {
-				printf("«Î ‰»Î»°º˛¬Î:");
-				scanf("%s", code);
-				getchar();
-				continue;
+				return TRUE;//∑µªÿtrueŒ™ºÃ–¯»°º˛,falseŒ™ÕÀ≥ˆ»°º˛
 			}
 			else if (i == 'n')
-				return TRUE;//ÕÀ≥ˆ»°º˛
+				return FALSE;//ÕÀ≥ˆ»°º˛
 			else {
 				printf(" ‰»Î¥ÌŒÛ,ƒ¨»œÕÀ≥ˆ»°º˛\n");
-				return TRUE;
+				return FALSE;
 			}
-			
 		}
 		while (1) {		
 			cP = locate_code_addr_list(cP->phonenum_p, code);
-			if (cP == NULL) {//‘⁄∏√À˜“˝±Ì÷–≤ª¥Ê‘⁄∏√ŒÔ∆∑ªÚ ‰»Î¥ÌŒÛ,‘⁄code_list÷ÿ–¬≤È’“
+			if (cP == NULL) //‘⁄∏√À˜“˝±Ì÷–≤ª¥Ê‘⁄∏√ŒÔ∆∑ªÚ ‰»Î¥ÌŒÛ,‘⁄code_list÷ÿ–¬≤È’“
 				break;
-			}printf("%s\n",cP->code);
 			//µ±¥Ê‘⁄ ±
 			de_locker_list(cP->locker_p->head,cP->locker_p);//øÏµ›πÒ»°≥ˆŒÔ∆∑,ªÿ ’◊ ‘¥
+			cP->locker_p->head->state--;
 			de_code_addr_list(cP->phonenum_p,cP->phonenum_p->sublist_prior);//…æ≥˝À˜“˝±Ìº«¬º
 			cP->record_p->stuff.iftimeout = -1;//∏¸∏ƒ◊¥Ã¨
 			cP->record_p->code_p = NULL;//»°œ˚±∏∑›
@@ -669,32 +726,34 @@ Status get_stuff(code_list cL,phonenum_list pL,	char code[7]) {//»°º˛pLŒ™“‘µÁª∞∑
 			//	printf("%d", (int)i);
 				if (i == 'y')
 				{
-					printf("«Î ‰»Î»°º˛¬Î:");
-					scanf("%s", code);
-					getchar();
-					continue;
+					return TRUE;
 				}
 				else if (i == 'n')
-					return TRUE;//ÕÀ≥ˆ»°º˛
+					return FALSE;//ÕÀ≥ˆ»°º˛
 			}
 			else//∏√∫≈¬Îªπ”–øÏµ›
 			{
 				de_code_list(cL, cP);//…æ≥˝∏√»°º˛¬ÎΩ⁄µ„
 				printf("»°º˛≥…π¶!\n");
-				printf("”√ªß%s:ƒ˙…–”–øÏµ›Œ¥»°,∞¥yº¸ºÃ–¯»°º˛,nÕÀ≥ˆ»°º˛\n",cP->phonenum_p->phonenum);
-
+				if (mode == 0) {//øÕªßƒ£ Ω
+					printf("”√ªß%s:ƒ˙…–”–øÏµ›Œ¥»°,∞¥yº¸ºÃ–¯»°º˛,nÕÀ≥ˆ»°º˛\n", cP->phonenum_p->phonenum);
+				}
+				else
+					printf("∞¥yº¸ºÃ–¯»°º˛,nÕÀ≥ˆ»°º˛\n");
 				i=getchar();
 				getchar();
 				//printf("%d", (int)i);
 				if (i =='y')
 				{
+					if (mode == 1) //øÏµ›‘±ƒ£ Ω÷±Ω”÷ÿ–¬»°º˛
+						return TRUE;
 					printf("«Î ‰»Î»°º˛¬Î:");
 					scanf("%s", code);
 					getchar();
 					continue;
 				}
 				else if (i == 'n')
-					return TRUE;//ÕÀ≥ˆ»°º˛
+					return FALSE;//ÕÀ≥ˆ»°º˛
 			}
 		}
 		continue;
@@ -722,6 +781,7 @@ Status put_stuff(code_list cL, deliverman_pointer dP, locker_list lL, phonenum_l
 	/*πÿ”⁄»°º˛¬Îµƒ≤Ÿ◊˜*/
 	create_code(cL,Scode,size);
 	strcpy(cP->code,Scode );//…˙≥…»°º˛¬Î≤¢–¥»Î»°º˛¬ÎΩ⁄µ„
+	stuff.iftimeout = 0;//◊¥Ã¨∏ƒŒ™»ÎπÒ
 	cP->stuff = stuff;
 	cP->locker_p = lL->prior;//¥Ê»Î∑÷≈‰µƒ∏Òø⁄µÿ÷∑
 	cP->phonenum_p = pP;//¥Ê»ÎµÁª∞∫≈µÿ÷∑
